@@ -1,0 +1,26 @@
+{
+  "name": "promptverse",
+  "private": true,
+  "version": "0.1.0",
+  "description": "AI-powered multi-platform app for generating high-quality content using prompt templates",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=apps/prompt-ui",
+    "build": "npm run build --workspace=packages/prompt-engine && npm run build --workspace=apps/prompt-ui",
+    "test": "npm run test --workspaces",
+    "lint": "npm run lint --workspaces",
+    "clean": "rm -rf node_modules && rm -rf apps/*/node_modules && rm -rf packages/*/node_modules",
+    "install:all": "npm install && npm install --workspaces"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.2",
+    "@types/node": "^20.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}
