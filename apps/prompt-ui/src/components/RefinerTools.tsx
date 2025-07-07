@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { usePromptStore } from '../store/promptStore';
-import { createOpenAIClientFromModelConfig } from '@promptverse/prompt-engine';
+import { generateAndRunPrompt } from '@promptverse/prompt-engine';
 import { useToast } from './Toast';
+import type { PromptTemplate } from '@promptverse/prompt-engine';
 
 interface RefinerTool {
   id: string;
@@ -88,33 +89,35 @@ export const RefinerTools: React.FC<RefinerToolsProps> = ({
     try {
       showToast(`Applying ${tool.name}...`, 'info');
       
-      // Create the refinement prompt for prompt engineering
-      const refinementPrompt = `${tool.prompt}
+      // Create a temporary template for prompt refinement (not content generation)
+      const refineTemplate: PromptTemplate = {
+        id: `refine-${tool.id}`,
+        name: tool.name,
+        description: tool.description,
+        template: `${tool.prompt}
 
 Original Prompt:
 """
-${content}
+{{content}}
 """
 
-Please provide only the improved prompt as your response, without any explanations or additional text. Focus on making it a better prompt for AI systems while maintaining the original intent.`;
+Please provide only the improved prompt as your response, without any explanations or additional text. Focus on making it a better prompt for AI systems while maintaining the original intent.`,
+        role: 'Expert Prompt Engineer',
+        useCase: 'Prompt Refinement',
+        requiredFields: ['content'],
+        optionalFields: [],
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
 
-      // Use OpenAI client directly for prompt refinement
-      const openaiClient = createOpenAIClientFromModelConfig(modelConfig);
+      const result = await generateAndRunPrompt(
+        refineTemplate, 
+        { content }, 
+        { ...modelConfig, temperature: 0.3 } // Lower temperature for more consistent refinements
+      );
       
-      const response = await openaiClient.generateCompletion(refinementPrompt, {
-        temperature: modelConfig.temperature || 0.3,
-        maxTokens: modelConfig.maxTokens || 2000,
-        systemPrompt: 'You are an expert prompt engineer. Your task is to improve prompts to make them more effective for AI systems. Return only the refined prompt without any explanations.'
-      });
-
-      const refinedPrompt = response.content?.trim();
-      
-      if (refinedPrompt) {
-        onRefined(refinedPrompt, tool.name);
-        showToast(`${tool.name} applied successfully!`, 'success');
-      } else {
-        throw new Error('No refined prompt received');
-      }
+      onRefined(result.result, tool.name);
+      showToast(`${tool.name} applied successfully!`, 'success');
     } catch (error) {
       showToast(`Failed to apply ${tool.name}`, 'error');
       console.error('Refiner error:', error);

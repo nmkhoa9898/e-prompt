@@ -8,7 +8,6 @@ export { ModelSettings } from './ModelSettings';
 export { TemplateManager } from './TemplateManager';
 export { SmartInput } from './SmartInput';
 export { RefinerTools } from './RefinerTools';
-export { TemplateVersionManager } from './TemplateVersionManager';
 export { ConversationManager } from './ConversationManager';
 export { AdvancedExport } from './AdvancedExport';
 export { PerformanceOptimizer } from './PerformanceOptimizer';
